@@ -1,3 +1,4 @@
+export 'fire_data.dart';
 export 'resource_cubit.dart';
 export 'resource_list_cubit.dart';
 export 'resource_list_data.dart';
