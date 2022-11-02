@@ -13,11 +13,13 @@ class ManualPagedMeta {
   final bool isNew;
   final bool isUpdated;
   final bool isLast;
+  final int index;
 
   ManualPagedMeta({
     required this.isNew,
     required this.isUpdated,
     required this.isLast,
+    required this.index,
   });
 }
 
@@ -111,6 +113,7 @@ class ManualPagedList<C extends PagedCubit<T>, T> extends StatelessWidget {
                     isUpdated: state.updatedItems.contains(item),
                     isNew: state.newItems.contains(item),
                     isLast: index == 0, //This is reversed
+                    index: index,
                   ),
                 );
               }

@@ -24,7 +24,7 @@ abstract class PagedCubit<R> extends Cubit<PagedState<R>> {
 
     /// This is inner function
     Future<QuerySnapshot<R>> fetch(String? skip) async {
-      final result = await executor(null);
+      final result = await executor(skip);
       return result;
     }
 
