@@ -68,7 +68,7 @@ class ResourceCubit<T> extends Cubit<ResourceState<T>> {
   }
 
   /// This will update the previous fetched result
-  update(T newData) {
+  update(T? newData) {
     if (newData != null) {
       emit(
         ResourceState(
