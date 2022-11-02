@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 typedef PagedQueryExecutor<T> = Future<QuerySnapshot<T>> Function(
-  String? last,
+    DocumentSnapshot<T>? last,
 );
 
 typedef PagedRefreshExecutor<T> = Future<QuerySnapshot<T>> Function();
@@ -23,7 +23,7 @@ abstract class PagedCubit<R> extends Cubit<PagedState<R>> {
     if (state.status == PagedStatus.end) emit(state);
 
     /// This is inner function
-    Future<QuerySnapshot<R>> fetch(String? skip) async {
+    Future<QuerySnapshot<R>> fetch(DocumentSnapshot<R>? skip) async {
       final result = await executor(skip);
       return result;
     }
@@ -31,9 +31,8 @@ abstract class PagedCubit<R> extends Cubit<PagedState<R>> {
     try {
       if (state.status == PagedStatus.initial) {
         final result = await fetch(null);
-        final items = result.docs
-            .map((e) => FireData(object: e.data(), id: e.id))
-            .toList();
+        final items =
+            result.docs.map((e) => FireData(object: e.data(), doc: e)).toList();
 
         emit(
           state.copyWith(
@@ -43,11 +42,11 @@ abstract class PagedCubit<R> extends Cubit<PagedState<R>> {
         );
       }
 
-      final last = state.items.last.id;
+      final last = state.items.last.doc;
       final result = await fetch(last);
 
       final items =
-          result.docs.map((e) => FireData(object: e.data(), id: e.id)).toList();
+          result.docs.map((e) => FireData(object: e.data(), doc: e)).toList();
 
       if (items.isEmpty) {
         emit(state.copyWith(status: PagedStatus.end));
@@ -83,7 +82,7 @@ abstract class PagedCubit<R> extends Cubit<PagedState<R>> {
       /// fetch from zero
       final result = await fetch();
       final items =
-          result.docs.map((e) => FireData(object: e.data(), id: e.id)).toList();
+          result.docs.map((e) => FireData(object: e.data(), doc: e)).toList();
 
       /// Here we are not appending items we just set new ones.
       if (items.isEmpty) {
@@ -100,7 +99,6 @@ abstract class PagedCubit<R> extends Cubit<PagedState<R>> {
         ));
       }
     } catch (e) {
-      //todo parse and format message.
       /// If there is error we just show previous items
       emit(state.copyWith(
         items: previousItems,
