@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 typedef PagedQueryExecutor<T> = Future<QuerySnapshot<T>> Function(
-    DocumentSnapshot<T>? last,
+  DocumentSnapshot<T>? last,
 );
 
 typedef PagedRefreshExecutor<T> = Future<QuerySnapshot<T>> Function();
@@ -31,8 +31,10 @@ abstract class PagedCubit<R> extends Cubit<PagedState<R>> {
     try {
       if (state.status == PagedStatus.initial) {
         final result = await fetch(null);
-        final items =
-            result.docs.map((e) => FireData(object: e.data(), doc: e)).toList();
+
+        final items = result.docs.map((e) {
+          return FireData(object: e.data(), doc: e);
+        }).toList();
 
         emit(
           state.copyWith(
@@ -42,19 +44,25 @@ abstract class PagedCubit<R> extends Cubit<PagedState<R>> {
         );
       }
 
-      final last = state.items.last.doc;
-      final result = await fetch(last);
+      if (state.items.isNotEmpty) {
+        final last = state.items.last.doc;
 
-      final items =
-          result.docs.map((e) => FireData(object: e.data(), doc: e)).toList();
+        final result = await fetch(last);
 
-      if (items.isEmpty) {
-        emit(state.copyWith(status: PagedStatus.end));
+        final items = result.docs.map((e) {
+          return FireData(object: e.data(), doc: e);
+        }).toList();
+
+        if (items.isEmpty) {
+          emit(state.copyWith(status: PagedStatus.end));
+        } else {
+          emit(state.copyWith(
+            status: _hasReachedEnd(items.length),
+            items: List.of(state.items)..addAll(items),
+          ));
+        }
       } else {
-        emit(state.copyWith(
-          status: _hasReachedEnd(items.length),
-          items: List.of(state.items)..addAll(items),
-        ));
+        emit(state.copyWith(status: PagedStatus.end));
       }
     } catch (e) {
       emit(state.copyWith(
@@ -81,8 +89,10 @@ abstract class PagedCubit<R> extends Cubit<PagedState<R>> {
     try {
       /// fetch from zero
       final result = await fetch();
-      final items =
-          result.docs.map((e) => FireData(object: e.data(), doc: e)).toList();
+
+      final items = result.docs.map((e) {
+        return FireData(object: e.data(), doc: e);
+      }).toList();
 
       /// Here we are not appending items we just set new ones.
       if (items.isEmpty) {
